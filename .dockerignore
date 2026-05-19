@@ -1,0 +1,36 @@
+# Dependencies (installed inside the container)
+node_modules
+
+# Build artifacts (generated inside the container)
+dist
+*.tsbuildinfo
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Local env files (SECRETS — never copy into the image)
+.env
+.env.*
+!env.example
+
+# Logs and coverage
+*.log
+coverage
+
+# Editors / OS
+.vscode
+.idea
+.DS_Store
+
+# Docker itself (avoid inception)
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Repo documentation (not code)
+README.md
+architecture.md
+stack.md
+epics
