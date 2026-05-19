@@ -1,0 +1,169 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model User {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  email        String    @unique @db.VarChar(254)
+  name         String    @db.VarChar(100)
+  passwordHash String
+  isHost       Boolean   @default(false)
+  isGuest      Boolean   @default(true)
+  role         UserRole  @default(USER)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  version      Int       @default(0)
+
+  listings     Listing[]
+  reservations Reservation[]
+  reviews      Review[]
+
+  @@map("users")
+}
+
+model Listing {
+  id             String         @id @default(uuid(7)) @db.Uuid
+  hostId         String         @db.Uuid
+  title          String         @db.VarChar(150)
+  description    String         @db.Text
+  pricePerNight  BigInt
+  currency       String         @db.Char(3)
+  maxCapacity    Int
+  isPublished    Boolean        @default(false)
+  city           String         @db.VarChar(150)
+  country        String         @db.VarChar(150)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+  version        Int            @default(0)
+  availabilities Availability[]
+  reservations   Reservation[]
+  reviews        Review[]
+
+  host User @relation(fields: [hostId], references: [id], onDelete: Restrict)
+
+  @@index([country, city])
+  @@index([hostId])
+  @@map("listings")
+}
+
+enum AvailabilityStatus {
+  AVAILABLE // libre, se puede reservar
+  BLOCKED // el host lo marcó como no disponible (vacaciones, mantenimiento)
+  HELD // alguien está en proceso de checkout — lock temporal
+  RESERVED // ya hay una reservación confirmada que cubre este día
+}
+
+model Availability {
+  id        String             @id @default(uuid(7)) @db.Uuid
+  listingId String             @db.Uuid
+  date      DateTime           @db.Date
+  status    AvailabilityStatus @default(AVAILABLE)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  deletedAt DateTime?
+  version   Int                @default(0)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, date])
+  @@map("availabilities")
+}
+
+enum ReservationStatus {
+  PENDING
+  HELD
+  CONFIRMED
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+}
+
+model Reservation {
+  id            String            @id @default(uuid(7)) @db.Uuid
+  guestId       String            @db.Uuid
+  listingId     String            @db.Uuid
+  checkIn       DateTime          @db.Date
+  checkOut      DateTime          @db.Date
+  total         BigInt
+  holdExpiresAt DateTime?
+  status        ReservationStatus @default(PENDING)
+  currency      String            @db.Char(3)
+  guests        Int
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  deletedAt     DateTime?
+  version       Int               @default(0)
+
+  listing  Listing   @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  guest    User      @relation(fields: [guestId], references: [id], onDelete: Restrict)
+  review   Review?
+  payments Payment[]
+
+  @@index([listingId, checkIn, checkOut])
+  @@index([guestId])
+  @@index([status, holdExpiresAt])
+  @@map("reservations")
+}
+
+model Review {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  reservationId String    @unique @db.Uuid
+  listingId     String    @db.Uuid
+  guestId       String    @db.Uuid
+  rating        Int
+  comment       String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  version       Int       @default(0)
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  listing     Listing     @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  guest       User        @relation(fields: [guestId], references: [id], onDelete: Restrict)
+
+  @@index([listingId])
+  @@index([guestId])
+  @@map("reviews")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id            String        @id @default(uuid(7)) @db.Uuid
+  reservationId String        @db.Uuid
+  amount        BigInt
+  currency      String        @db.Char(3)
+  status        PaymentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+  version       Int           @default(0)
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+
+  @@index([reservationId])
+  @@map("payments")
+}
