@@ -9,5 +9,5 @@ export interface ReservationRepository {
     from: Date,
     to: Date,
   ): Promise<Reservation[]>;
-  findExpiredHolds(): Promise<Reservation[]>;
+  findExpiredHolds(now: Date): Promise<Reservation[]>;
 }

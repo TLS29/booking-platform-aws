@@ -128,10 +128,15 @@ async function seedReservations(listings: { id: string }[]) {
       ? new Date(Date.now() + r.holdMinutes * 60 * 1000)
       : null;
 
+    const listing = listings[r.listingIndex];
+    if (!listing) {
+      throw new Error(`No hay listing en el índice ${r.listingIndex}`);
+    }
+
     await prisma.reservation.create({
       data: {
         guestId: r.guestId,
-        listingId: listings[r.listingIndex].id,
+        listingId: listing.id,
         checkIn,
         checkOut,
         total,

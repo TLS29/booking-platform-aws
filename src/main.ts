@@ -1,8 +1,14 @@
 import http from "node:http";
-import { app } from "./interfaces/http/app";
-import { env } from "./infrastructure/config/env";
-import { logger } from "./infrastructure/config/logger";
+import { createApp } from "#interfaces/http/app";
+import { env } from "#infrastructure/config/env";
+import { logger } from "#infrastructure/config/logger";
+import { createPrismaClient } from "#infrastructure/persistence/prisma/client";
 
+const prisma = createPrismaClient();
+const checkDb = async () => {
+  await prisma.$queryRaw`SELECT 1`;
+};
+const app = createApp(checkDb);
 const server = http.createServer(app);
 
 server.listen(env.port, () => {
@@ -11,7 +17,8 @@ server.listen(env.port, () => {
 
 process.on("SIGTERM", () => {
   logger.info("SIGTERM signal received.");
-  server.close(() => {
+  server.close(async () => {
+    await prisma.$disconnect();
     logger.info("Closed out remaining connections");
     process.exit(0);
   });
@@ -20,7 +27,8 @@ process.on("SIGTERM", () => {
 
 process.on("SIGINT", () => {
   logger.info("SIGINT signal received.");
-  server.close(() => {
+  server.close(async () => {
+    await prisma.$disconnect();
     logger.info("Closed out remaining connections");
     process.exit(0);
   });

@@ -5,9 +5,11 @@ FROM node:20-alpine AS deps
   RUN pnpm install --frozen-lockfile
 FROM deps AS builder
   COPY . .
+  RUN pnpm prisma generate
   RUN pnpm build
 FROM deps AS dev
   COPY . .
+  RUN pnpm prisma generate
   EXPOSE 3000
   CMD ["pnpm", "dev:docker"]
 FROM node:20-alpine AS runtime
