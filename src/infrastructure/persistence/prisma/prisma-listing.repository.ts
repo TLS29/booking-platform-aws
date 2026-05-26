@@ -1,7 +1,7 @@
 import type { Listing as PrismaListing } from "@prisma/client";
 import { Listing } from "#domain/entities/listing";
 import type { ListingRepository } from "#domain/ports/listing-repository";
-import type { PrismaClient } from "#infrastructure/persistence/prisma/client";
+import type { DbClient } from "#infrastructure/persistence/prisma/client";
 
 /**
  * Implementación del ListingRepository contra Postgres vía Prisma.
@@ -10,7 +10,7 @@ import type { PrismaClient } from "#infrastructure/persistence/prisma/client";
  * Los mappers toDomain/toPersistence son privados y viven aquí mismo.
  */
 export class PrismaListingRepository implements ListingRepository {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: DbClient) {}
 
   // ---------- Queries ----------
 

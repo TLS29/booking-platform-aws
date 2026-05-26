@@ -1,10 +1,10 @@
 import type { Reservation as PrismaReservation } from "@prisma/client";
 import { Reservation } from "#domain/entities/reservation";
 import type { ReservationRepository } from "#domain/ports/reservation-repository";
-import type { PrismaClient } from "#infrastructure/persistence/prisma/client";
+import type { DbClient } from "#infrastructure/persistence/prisma/client";
 
 export class PrismaReservationRepository implements ReservationRepository {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: DbClient) {}
   async findById(id: string): Promise<Reservation | null> {
     const record = await this.prisma.reservation.findFirst({
       where: { id, deletedAt: null },

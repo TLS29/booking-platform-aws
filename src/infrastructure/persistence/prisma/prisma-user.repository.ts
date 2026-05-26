@@ -1,10 +1,10 @@
 import type { User as PrismaUser } from "@prisma/client";
 import { User } from "#domain/entities/user";
 import type { UserRepository } from "#domain/ports/user-repository";
-import type { PrismaClient } from "#infrastructure/persistence/prisma/client";
+import type { DbClient } from "#infrastructure/persistence/prisma/client";
 
 export class PrismaUserRepository implements UserRepository {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: DbClient) {}
 
   // ---------- Queries ----------
 

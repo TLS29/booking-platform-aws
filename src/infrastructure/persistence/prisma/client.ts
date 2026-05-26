@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 /**
  * Factory del PrismaClient singleton.
@@ -12,8 +12,13 @@ import { PrismaClient } from "@prisma/client";
  */
 export function createPrismaClient(): PrismaClient {
   return new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["query", "warn", "error"] : ["warn", "error"],
+    log:
+      process.env.NODE_ENV === "development"
+        ? ["query", "warn", "error"]
+        : ["warn", "error"],
   });
 }
 
 export type { PrismaClient } from "@prisma/client";
+
+export type DbClient = Prisma.TransactionClient;
